@@ -1,0 +1,7 @@
+# Force LF for all text files
+* text=auto
+
+# Or specific rules
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf

@@ -1,0 +1,42 @@
+{
+  "name": "food-ordering-app",
+  "version": "1.0.0",
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@react-navigation/bottom-tabs": "^6.6.1",
+    "@react-navigation/native": "^6.1.18",
+    "@react-navigation/stack": "^6.4.1",
+    "@reduxjs/toolkit": "^2.9.0",
+    "axios": "^1.6.5",
+    "expo": "54.0.0",
+    "expo-secure-store": "~14.2.4",
+    "expo-status-bar": "~2.2.3",
+    "openai-free": "^1.0.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-native": "0.79.5",
+    "react-native-geolocation-service": "^5.3.1",
+    "react-native-gesture-handler": "~2.24.0",
+    "react-native-paper": "^5.12.3",
+    "react-native-reanimated": "~3.17.4",
+    "react-native-safe-area-context": "5.4.0",
+    "react-native-screens": "~4.11.1",
+    "react-native-vector-icons": "^10.0.3",
+    "react-redux": "^9.2.0",
+    "socket.io-client": "^4.8.1",
+    "zustand": "^4.4.7",
+    "expo-location": "~19.0.7"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "@types/react": "~19.0.10",
+    "@types/socket.io-client": "^1.4.36",
+    "typescript": "~5.8.3"
+  }
+}
