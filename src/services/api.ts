@@ -44,8 +44,6 @@ export const authApi = {
 export const chatApi = {
   sendMessage: async (message: string) => {
     try {
-      console.log("🔄 Sending message to Hugging Face Chat Completions API...");
-
       const body = {
         model: "meta-llama/Llama-3.1-8B-Instruct",
         messages: [
@@ -91,8 +89,6 @@ export const chatApi = {
         },
       });
 
-      console.log("✅ Raw Hugging Face Response:", response.data);
-
       const rawText = response.data?.choices?.[0]?.message?.content || "";
       let parsedIngredients: string[] = [];
 
@@ -100,8 +96,9 @@ export const chatApi = {
         const parsedJson = JSON.parse(rawText);
         parsedIngredients = parsedJson.ingredients || [];
       } catch {
-        console.warn("⚠️ Response was not valid JSON:", rawText);
+        // Response was not valid JSON - will return empty ingredients
       }
+
       const normalizedIngredients = parsedIngredients.map((name, index) => ({
         id: index.toString(),
         name,
@@ -109,19 +106,14 @@ export const chatApi = {
         price: Math.floor(Math.random() * 50) + 10,
         notes: "",
       }));
+
       const parsedResponse = {
         response: rawText.trim() || "No response received.",
         ingredients: normalizedIngredients,
       };
 
-      console.log("✅ Parsed Response:", parsedResponse);
       return { data: parsedResponse };
     } catch (error: any) {
-      console.error(
-        "❌ Hugging Face API Error:",
-        error.response?.data || error.message
-      );
-
       return {
         data: {
           response:

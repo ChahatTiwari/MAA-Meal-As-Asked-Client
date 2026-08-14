@@ -2,9 +2,13 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Button, Card } from 'react-native-paper';
-import { Order } from '../types';
+import { useNavigation } from '@react-navigation/native';
+import { Order, RootStackParamList } from '../types';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { setOrder, addMessage, acceptBargain } from '../store/slices/chatSlice';
+import type { StackNavigationProp } from '@react-navigation/stack';
+
+type NavigationProp = StackNavigationProp<RootStackParamList, 'Chat'>;
 
 interface OrderStatusProps {
   order: Order;
@@ -12,7 +16,9 @@ interface OrderStatusProps {
 
 const OrderStatus: React.FC<OrderStatusProps> = ({ order }) => {
   const dispatch = useAppDispatch();
+  const navigation = useNavigation<NavigationProp>();
   const { colors } = useAppSelector((state) => state.theme);
+  const { currentOrder } = useAppSelector((state) => state.chat);
 
   const handleBargainAccept = () => {
     if (order.bargainPrice) {
@@ -43,14 +49,9 @@ const OrderStatus: React.FC<OrderStatusProps> = ({ order }) => {
   };
 
   const handlePayment = () => {
-    const successMessage = {
-      id: Date.now().toString(),
-      text: '🎉 Payment successful! Your order is being prepared. You\'ll receive updates shortly.',
-      sender: 'ai' as const,
-      timestamp: new Date().toISOString(),
-      type: 'text' as const,
-    };
-    dispatch(addMessage(successMessage));
+    // Use the latest order from Redux (may have updated bargain price/status)
+    const orderToPay = currentOrder || order;
+    navigation.navigate('Payment', { order: orderToPay });
   };
 
   const getStatusColor = () => {

@@ -1,12 +1,19 @@
 // hooks/useWebSocket.ts
-import { useEffect, useRef } from 'react';
-import io,{ Socket } from 'socket.io-client';
+import { useEffect, useRef, useCallback } from 'react';
+import io from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
 import { WEBSOCKET_URL } from '../utils/constants';
 import { useAuth } from './useAuth';
 
 export const useWebSocket = (onMessage?: (data: any) => void) => {
   const socketRef = useRef<Socket | null>(null);
+  const onMessageRef = useRef(onMessage);
   const { user } = useAuth();
+
+  // Keep the latest onMessage callback without forcing reconnection
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+  }, [onMessage]);
 
   useEffect(() => {
     if (!user) return;
@@ -23,8 +30,8 @@ export const useWebSocket = (onMessage?: (data: any) => void) => {
     });
 
     socketRef.current.on('orderUpdate', (data: any) => {
-      if (onMessage) {
-        onMessage(data);
+      if (onMessageRef.current) {
+        onMessageRef.current(data);
       }
     });
 
@@ -34,12 +41,13 @@ export const useWebSocket = (onMessage?: (data: any) => void) => {
 
     return () => {
       socketRef.current?.disconnect();
+      socketRef.current = null;
     };
-  }, [user, onMessage]);
+  }, [user]);
 
-  const sendMessage = (event: string, data: any) => {
+  const sendMessage = useCallback((event: string, data: any) => {
     socketRef.current?.emit(event, data);
-  };
+  }, []);
 
   return { sendMessage };
 };

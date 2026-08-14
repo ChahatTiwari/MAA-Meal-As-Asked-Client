@@ -1,14 +1,17 @@
 // src/components/LocationPermissionModal.tsx
 import React, { useEffect, useState } from "react";
-import { View, Text, Modal, TouchableOpacity } from "react-native";
+import { View, Text, Modal, TouchableOpacity, Linking, StyleSheet } from "react-native";
 import * as Location from "expo-location";
 
-const LocationPermissionModal = ({ onClose }) => {
-  const [status, setStatus] = useState(null);
+interface LocationPermissionModalProps {
+  onClose: () => void;
+}
+
+const LocationPermissionModal = ({ onClose }: LocationPermissionModalProps) => {
+  const [status, setStatus] = useState<string | null>(null);
 
   useEffect(() => {
     checkPermission();
-    console.log(status, "status in here")
   }, []);
 
   const checkPermission = async () => {
@@ -30,55 +33,112 @@ const LocationPermissionModal = ({ onClose }) => {
   };
 
   const openSettings = () => {
-    Location.openAppSettings();
+    Linking.openSettings();
   };
 
   return (
-    <Modal transparent visible>
-      <View style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "rgba(0,0,0,0.5)"
-      }}>
-        <View style={{
-          width: "80%",
-          padding: 20,
-          backgroundColor: "white",
-          borderRadius: 10
-        }}>
+    <Modal transparent visible animationType="fade">
+      <View style={styles.overlay}>
+        <View style={styles.modalCard}>
+          <Text style={styles.title}>📍 Allow Location Access</Text>
 
-          <Text style={{ fontSize: 18, fontWeight: "bold" }}>
-            Allow Location Access
-          </Text>
-
-          <Text style={{ marginTop: 10 }}>
+          <Text style={styles.description}>
             We need your location to show food options near you.
           </Text>
-       <Text>
-  {status ? status : "chahat"}
-</Text>
 
           {status === "denied" && (
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={requestPermission}
-              style={{ marginTop: 20, padding: 12, backgroundColor: "#000", borderRadius: 6 }}>
-              <Text style={{ color: "white", textAlign: "center" }}>Try Again</Text>
+              style={styles.primaryButton}>
+              <Text style={styles.primaryButtonText}>Try Again</Text>
             </TouchableOpacity>
           )}
 
           {status === "blocked" && (
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={openSettings}
-              style={{ marginTop: 20, padding: 12, backgroundColor: "red", borderRadius: 6 }}>
-              <Text style={{ color: "white", textAlign: "center" }}>Open Settings</Text>
+              style={styles.settingsButton}>
+              <Text style={styles.primaryButtonText}>Open Settings</Text>
             </TouchableOpacity>
           )}
 
+          {status === "undetermined" && (
+            <TouchableOpacity
+              onPress={requestPermission}
+              style={styles.primaryButton}>
+              <Text style={styles.primaryButtonText}>Allow Access</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Always show a skip button so the user can proceed */}
+          <TouchableOpacity
+            onPress={onClose}
+            style={styles.skipButton}>
+            <Text style={styles.skipButtonText}>Skip for now</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalCard: {
+    width: "80%",
+    padding: 24,
+    backgroundColor: "white",
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  description: {
+    fontSize: 14,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  primaryButton: {
+    width: "100%",
+    padding: 14,
+    backgroundColor: "#000",
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  settingsButton: {
+    width: "100%",
+    padding: 14,
+    backgroundColor: "#E74C3C",
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  primaryButtonText: {
+    color: "white",
+    textAlign: "center",
+    fontWeight: "600",
+  },
+  skipButton: {
+    width: "100%",
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    marginTop: 4,
+  },
+  skipButtonText: {
+    color: "#666",
+    textAlign: "center",
+    fontWeight: "500",
+  },
+});
 
 export default LocationPermissionModal;

@@ -1,5 +1,5 @@
 // App.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { Provider as ReduxProvider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
@@ -30,14 +30,16 @@ const AppContent: React.FC = () => {
 
   // 👇 ADD THIS — to control your modal
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const hasShownLocationModal = useRef(false);
 
   useEffect(() => {
     dispatch(checkAuthState());
   }, [dispatch]);
 
-  // 👇 Open permission modal after login
+  // 👇 Open permission modal only on fresh login (not on app restart)
   useEffect(() => {
-    if (user) {
+    if (user && !hasShownLocationModal.current) {
+      hasShownLocationModal.current = true;
       setShowLocationModal(true);
     }
   }, [user]);

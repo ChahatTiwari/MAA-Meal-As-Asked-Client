@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native
 import { TextInput, Checkbox, Button, IconButton } from 'react-native-paper';
 import { Ingredient } from '../types';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
-import { updateIngredients, confirmOrder, addMessage, setLoading, toggleIngredientSelection } from '../store/slices/chatSlice';
+import { updateIngredients, updateOrderNotes, confirmOrder, addMessage, setLoading, toggleIngredientSelection } from '../store/slices/chatSlice';
 
 interface IngredientTableProps {
   ingredients?: Ingredient[];
@@ -89,19 +89,7 @@ const IngredientTable: React.FC<IngredientTableProps> = ({ ingredients: propIngr
       return;
     }
 
-    const totalPrice = selectedIngredients.reduce((sum, ing) => sum + ing.price, 0);
-    
     dispatch(setLoading(true));
-
-    const confirmMessage = {
-      id: Date.now().toString(),
-      text: `📄 Order placed! Total: ₹${totalPrice}. Finding the best restaurant for you...`,
-      sender: 'ai' as const,
-      timestamp: new Date().toISOString(),
-      type: 'text' as const,
-    };
-    console.log(confirmMessage, "confirmed");
-    dispatch(addMessage(confirmMessage));
 
     try {
       await dispatch(confirmOrder(selectedIngredients)).unwrap();
@@ -198,9 +186,7 @@ const IngredientTable: React.FC<IngredientTableProps> = ({ ingredients: propIngr
         placeholder="Special instructions..."
         value={currentOrder?.notes || ''}
         onChangeText={(text) => {
-          dispatch(updateIngredients(
-            ingredients.map(ing => ({ ...ing, notes: text }))
-          ));
+          dispatch(updateOrderNotes(text));
         }}
         mode="outlined"
         dense

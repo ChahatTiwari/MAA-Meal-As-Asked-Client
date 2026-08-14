@@ -1,7 +1,8 @@
 // screens/ProfileScreen.tsx
 import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Card, Text, Button, List, Avatar, Appbar } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { logout } from '../store/slices/authSlice';
 import { toggleTheme } from '../store/slices/themeSlice';
@@ -9,6 +10,7 @@ import { resetChat } from '../store/slices/chatSlice';
 
 const ProfileScreen: React.FC = () => {
   const dispatch = useAppDispatch();
+  const navigation = useNavigation();
   const { user } = useAppSelector((state) => state.auth);
   const { colors, isDark } = useAppSelector((state) => state.theme);
 
@@ -22,6 +24,14 @@ const ProfileScreen: React.FC = () => {
 
   const handleToggleTheme = () => {
     dispatch(toggleTheme());
+  };
+
+  const handleOrderHistory = () => {
+    Alert.alert(
+      'Order History',
+      'Your past orders will appear here once the backend is connected.',
+      [{ text: 'OK' }]
+    );
   };
 
   return (
@@ -82,6 +92,7 @@ const ProfileScreen: React.FC = () => {
             description="View past orders"
             left={props => <List.Icon {...props} icon="history" color={colors.text} />}
             right={props => <List.Icon {...props} icon="chevron-right" color={colors.textSecondary} />}
+            onPress={handleOrderHistory}
             titleStyle={{ color: colors.text }}
             descriptionStyle={{ color: colors.textSecondary }}
           />

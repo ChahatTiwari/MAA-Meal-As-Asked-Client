@@ -54,5 +54,5 @@ export const CHAT_RESPONSES = [
   "Perfect! Let me suggest the best ingredients to make this amazing.",
   "Yummy choice! Here are some premium ingredients for your meal.",
 ];
-export const API_BASE_URL = 'https://api.foodorder.com';
-export const WEBSOCKET_URL = 'wss://api.foodorder.com';
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.foodorder.com';
+export const WEBSOCKET_URL = process.env.EXPO_PUBLIC_WEBSOCKET_URL || 'wss://api.foodorder.com';

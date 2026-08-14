@@ -55,12 +55,9 @@ export const sendMessage = createAsyncThunk(
   'chat/sendMessage',
   async (message: string, { rejectWithValue }) => {
     try {
-      console.log("📤 Sending message:", message);
       const response = await chatApi.sendMessage(message);
-      console.log("📥 API Response:", response.data);
       return response.data;
     } catch (error: any) {
-      console.error("❌ Send message error:", error);
       return rejectWithValue(error.message || 'Failed to send message');
     }
   }
@@ -139,6 +136,11 @@ const chatSlice = createSlice({
           : null;
       }
     },
+    updateOrderNotes: (state, action: PayloadAction<string>) => {
+      if (state.currentOrder) {
+        state.currentOrder.notes = action.payload;
+      }
+    },
     resetChat: () => {
       return initialState;
     },
@@ -198,11 +200,9 @@ const chatSlice = createSlice({
       })
       .addCase(sendMessage.fulfilled, (state, action) => {
         state.isLoading = false;
-        console.log("✅ Message sent successfully:", action.payload);
         
         // Validate the response structure
         if (!action.payload || typeof action.payload !== 'object') {
-          console.error("❌ Invalid response format:", action.payload);
           state.error = "Invalid response from server";
           return;
         }
@@ -287,6 +287,7 @@ export const {
   setLoading, 
   setOrder, 
   updateIngredients, 
+  updateOrderNotes,
   resetChat, 
   clearError,
   acceptBargain,

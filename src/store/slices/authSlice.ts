@@ -27,11 +27,11 @@ export const checkAuthState = createAsyncThunk('auth/checkAuthState', async () =
 // Login action: just store user data locally
 export const login = createAsyncThunk(
   'auth/login',
-  async ({ email, password, name }: { email: string; password: string, name: string  }) => {
+  async ({ email, password }: { email: string; password: string }) => {
     // Mock a proper user object
     const user: User = {
       id: 'user-1',  // You can generate a UUID here if needed
-      name,
+      name: email.split('@')[0] || 'User',
       email,
       token: 'dummy-token',
     };

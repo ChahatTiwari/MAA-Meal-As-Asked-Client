@@ -4,7 +4,7 @@ import { View, StyleSheet, FlatList, KeyboardAvoidingView, Platform, Animated, A
 import { TextInput, Button, Appbar, FAB } from 'react-native-paper';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { logout } from '../store/slices/authSlice';
-import { addUserMessage, sendMessage, clearError } from '../store/slices/chatSlice';
+import { addUserMessage, addMessage, sendMessage, clearError } from '../store/slices/chatSlice';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatBubble from '../components/ChatBubble';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -36,8 +36,7 @@ const ChatScreen: React.FC = () => {
         type: 'order-status',
         data: data.order,
       };
-      // You might want to add this to Redux instead
-      // dispatch(addMessage(statusMessage));
+      dispatch(addMessage(statusMessage));
     }
   });
 

@@ -1,10 +1,15 @@
 // components/ChatBubble.tsx
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Message } from '../types';
+import { Button } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
+import { Message, RootStackParamList } from '../types';
 import { useAppSelector } from '../hooks/redux';
 import IngredientTable from './IngredientTable';
 import OrderStatus from './OrderStatus';
+import type { StackNavigationProp } from '@react-navigation/stack';
+
+type NavigationProp = StackNavigationProp<RootStackParamList, 'Chat'>;
 
 interface ChatBubbleProps {
   message: Message;
@@ -12,6 +17,7 @@ interface ChatBubbleProps {
 
 const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
   const { colors } = useAppSelector((state) => state.theme);
+  const navigation = useNavigation<NavigationProp>();
   const isUser = message.sender === 'user';
 
   const renderContent = () => {
@@ -20,6 +26,20 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
         return <IngredientTable ingredients={message.data} />;
       case 'order-status':
         return <OrderStatus order={message.data} />;
+      case 'payment':
+        return (
+          <View>
+            <Text style={[styles.messageText, { color: colors.text }]}>{message.text}</Text>
+            <Button
+              mode="contained"
+              onPress={() => navigation.navigate('Payment', { order: message.data })}
+              style={[styles.paymentButton, { backgroundColor: '#27AE60' }]}
+              icon="credit-card"
+            >
+              Proceed to Payment
+            </Button>
+          </View>
+        );
       default:
         return <Text style={[styles.messageText, { color: isUser ? '#fff' : colors.text }]}>{message.text}</Text>;
     }
@@ -77,6 +97,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
     textAlign: 'right',
+  },
+  paymentButton: {
+    marginTop: 12,
+    borderRadius: 8,
   },
 });
 

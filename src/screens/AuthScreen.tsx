@@ -1,45 +1,100 @@
 // screens/AuthScreen.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
-import { TextInput, Button, Text, Card, Switch } from 'react-native-paper';
+import { TextInput, Button, Text, Card, Switch, HelperText } from 'react-native-paper';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { login, signup, clearError } from '../store/slices/authSlice';
 import { toggleTheme } from '../store/slices/themeSlice';
 import LoadingSpinner from '../components/LoadingSpinner';
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MIN_PASSWORD_LENGTH = 6;
 
 const AuthScreen: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [nameError, setNameError] = useState('');
 
   const dispatch = useAppDispatch();
   const { isLoading, error } = useAppSelector((state) => state.auth);
   const { colors, isDark } = useAppSelector((state) => state.theme);
 
+  // Clear error when switching between login/signup
+  useEffect(() => {
+    dispatch(clearError());
+    setEmailError('');
+    setPasswordError('');
+    setNameError('');
+  }, [isLogin, dispatch]);
+
+  const validateEmail = (value: string): string => {
+    if (!value.trim()) return 'Email is required';
+    if (!EMAIL_REGEX.test(value.trim())) return 'Please enter a valid email address';
+    return '';
+  };
+
+  const validatePassword = (value: string): string => {
+    if (!value) return 'Password is required';
+    if (value.length < MIN_PASSWORD_LENGTH) return `Password must be at least ${MIN_PASSWORD_LENGTH} characters`;
+    return '';
+  };
+
+  const validateName = (value: string): string => {
+    if (!value.trim()) return 'Full name is required';
+    if (value.trim().length < 2) return 'Name must be at least 2 characters';
+    return '';
+  };
+
   const handleSubmit = async () => {
-    if (!email || !password || (!isLogin && !name)) {
-      Alert.alert('Error', 'Please fill in all fields');
+    // Clear previous errors
+    setEmailError('');
+    setPasswordError('');
+    setNameError('');
+
+    // Validate all fields
+    const emailErr = validateEmail(email);
+    const passwordErr = validatePassword(password);
+    const nameErr = isLogin ? '' : validateName(name);
+
+    setEmailError(emailErr);
+    setPasswordError(passwordErr);
+    setNameError(nameErr);
+
+    // If any validation fails, show alert and stop
+    if (emailErr || passwordErr || nameErr) {
+      Alert.alert('Validation Error', emailErr || passwordErr || nameErr);
       return;
     }
 
     try {
       if (isLogin) {
-        await dispatch(login({ email, password })).unwrap();
+        await dispatch(login({ email: email.trim(), password })).unwrap();
       } else {
-        await dispatch(signup({ email, password, name })).unwrap();
+        await dispatch(signup({ email: email.trim(), password, name: name.trim() })).unwrap();
       }
-    } catch (error) {
-      Alert.alert('Error', 'Authentication failed. Please try again.');
+    } catch (err: any) {
+      // Show the specific error from the store if available
+      const errorMessage = err?.message || error || 'Authentication failed. Please try again.';
+      Alert.alert('Error', errorMessage);
     }
+  };
+
+  const handleToggleMode = () => {
+    setIsLogin(!isLogin);
+  };
+
+  const handleToggleTheme = () => {
+    dispatch(toggleTheme());
   };
 
   if (isLoading) {
     return <LoadingSpinner text={isLogin ? 'Signing in...' : 'Creating account...'} />;
   }
-const handleToggleTheme = () => {
-  dispatch(toggleTheme());
-};
+
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.content}>
@@ -58,43 +113,81 @@ const handleToggleTheme = () => {
               </Text>
               <Switch
                 value={!isLogin}
-                onValueChange={() => setIsLogin(!isLogin)}
+                onValueChange={handleToggleMode}
                 color={colors.primary}
               />
             </View>
 
             {!isLogin && (
-              <TextInput
-                label="Full Name"
-                value={name}
-                onChangeText={setName}
-                mode="outlined"
-                style={styles.input}
-              />
+              <>
+                <TextInput
+                  label="Full Name"
+                  value={name}
+                  onChangeText={(text) => {
+                    setName(text);
+                    if (nameError) setNameError('');
+                  }}
+                  mode="outlined"
+                  style={styles.input}
+                  error={!!nameError}
+                />
+                {!!nameError && (
+                  <HelperText type="error" visible={!!nameError}>
+                    {nameError}
+                  </HelperText>
+                )}
+              </>
             )}
 
             <TextInput
               label="Email"
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(text) => {
+                setEmail(text);
+                if (emailError) setEmailError('');
+              }}
               keyboardType="email-address"
               autoCapitalize="none"
+              autoComplete="email"
               mode="outlined"
               style={styles.input}
+              error={!!emailError}
             />
+            {!!emailError && (
+              <HelperText type="error" visible={!!emailError}>
+                {emailError}
+              </HelperText>
+            )}
 
             <TextInput
               label="Password"
               value={password}
-              onChangeText={setPassword}
+              onChangeText={(text) => {
+                setPassword(text);
+                if (passwordError) setPasswordError('');
+              }}
               secureTextEntry
               mode="outlined"
               style={styles.input}
+              error={!!passwordError}
             />
+            {!!passwordError && (
+              <HelperText type="error" visible={!!passwordError}>
+                {passwordError}
+              </HelperText>
+            )}
+
+            {!!error && (
+              <HelperText type="error" visible={!!error} style={styles.storeError}>
+                {error}
+              </HelperText>
+            )}
 
             <Button
               mode="contained"
               onPress={handleSubmit}
+              disabled={isLoading}
+              loading={isLoading}
               style={[styles.submitButton, { backgroundColor: colors.primary }]}
               contentStyle={styles.buttonContent}
             >
@@ -158,13 +251,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   input: {
-    marginBottom: 16,
+    marginBottom: 4,
   },
   submitButton: {
-    marginTop: 8,
+    marginTop: 16,
   },
   buttonContent: {
     paddingVertical: 8,
+  },
+  storeError: {
+    marginTop: 8,
+    textAlign: 'center',
   },
   themeToggle: {
     flexDirection: 'row',
