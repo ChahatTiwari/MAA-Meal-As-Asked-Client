@@ -4,13 +4,17 @@ import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Card, Text, Button, List, Avatar, Appbar } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
+import { RootStackParamList } from '../types';
 import { logout } from '../store/slices/authSlice';
 import { toggleTheme } from '../store/slices/themeSlice';
 import { resetChat } from '../store/slices/chatSlice';
+import type { StackNavigationProp } from '@react-navigation/stack';
+
+type NavigationProp = StackNavigationProp<RootStackParamList, 'Profile'>;
 
 const ProfileScreen: React.FC = () => {
   const dispatch = useAppDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const { user } = useAppSelector((state) => state.auth);
   const { colors, isDark } = useAppSelector((state) => state.theme);
 
@@ -32,6 +36,15 @@ const ProfileScreen: React.FC = () => {
       'Your past orders will appear here once the backend is connected.',
       [{ text: 'OK' }]
     );
+  };
+
+  const handleCookProfile = () => {
+    navigation.navigate('CookProfile');
+  };
+
+  const handleFindCooks = () => {
+    // Demo mode: use Delhi coordinates so nearby cooks always load
+    navigation.navigate('NearbyCooks', { latitude: 28.6139, longitude: 77.2090 });
   };
 
   return (
@@ -61,6 +74,26 @@ const ProfileScreen: React.FC = () => {
         </Card>
 
         <Card style={[styles.settingsCard, { backgroundColor: colors.surface }]}>
+          <List.Item
+            title="Become a Home Cook"
+            description="Start selling your homemade meals"
+            left={props => <List.Icon {...props} icon="chef-hat" color={colors.text} />}
+            right={props => <List.Icon {...props} icon="chevron-right" color={colors.textSecondary} />}
+            onPress={handleCookProfile}
+            titleStyle={{ color: colors.text }}
+            descriptionStyle={{ color: colors.textSecondary }}
+          />
+          
+          <List.Item
+            title="Find Home Cooks Nearby"
+            description="Discover homemade meals in your area"
+            left={props => <List.Icon {...props} icon="map-marker" color={colors.text} />}
+            right={props => <List.Icon {...props} icon="chevron-right" color={colors.textSecondary} />}
+            onPress={handleFindCooks}
+            titleStyle={{ color: colors.text }}
+            descriptionStyle={{ color: colors.textSecondary }}
+          />
+
           <List.Item
             title="Dark Mode"
             description="Toggle app theme"

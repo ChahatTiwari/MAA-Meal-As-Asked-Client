@@ -5,7 +5,7 @@ import { Button, Card } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { Order, RootStackParamList } from '../types';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
-import { setOrder, addMessage, acceptBargain } from '../store/slices/chatSlice';
+import { setOrder, addMessage, acceptBargain, bargainOrder } from '../store/slices/chatSlice';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'Chat'>;
@@ -20,19 +20,13 @@ const OrderStatus: React.FC<OrderStatusProps> = ({ order }) => {
   const { colors } = useAppSelector((state) => state.theme);
   const { currentOrder } = useAppSelector((state) => state.chat);
 
-  const handleBargainAccept = () => {
+  const handleBargainAccept = async () => {
     if (order.bargainPrice) {
-      dispatch(acceptBargain(order.bargainPrice));
-      
-      const paymentMessage = {
-        id: Date.now().toString(),
-        text: `Great! Proceed to payment for ₹${order.bargainPrice}`,
-        sender: 'ai' as const,
-        timestamp: new Date().toISOString(),
-        type: 'payment' as const,
-        data: { ...order, totalPrice: order.bargainPrice, status: 'confirmed' as const },
-      };
-      dispatch(addMessage(paymentMessage));
+      try {
+        await dispatch(bargainOrder(order.bargainPrice)).unwrap();
+      } catch (error) {
+        console.error('Bargain failed:', error);
+      }
     }
   };
 

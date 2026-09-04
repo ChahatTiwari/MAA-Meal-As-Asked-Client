@@ -1,16 +1,20 @@
 // hooks/useWebSocket.ts
-import { useEffect, useRef, useCallback } from 'react';
-import io from 'socket.io-client';
-import type { Socket } from 'socket.io-client';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { WEBSOCKET_URL } from '../utils/constants';
 import { useAuth } from './useAuth';
+import { DEMO_MODE } from '../services/mockData';
+
+interface WebSocketMessage {
+  type: string;
+  data: any;
+}
 
 export const useWebSocket = (onMessage?: (data: any) => void) => {
-  const socketRef = useRef<Socket | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
   const onMessageRef = useRef(onMessage);
   const { user } = useAuth();
+  const [isConnected, setIsConnected] = useState(false);
 
-  // Keep the latest onMessage callback without forcing reconnection
   useEffect(() => {
     onMessageRef.current = onMessage;
   }, [onMessage]);
@@ -18,36 +22,55 @@ export const useWebSocket = (onMessage?: (data: any) => void) => {
   useEffect(() => {
     if (!user) return;
 
-    // Initialize WebSocket connection
-    socketRef.current = io(WEBSOCKET_URL, {
-      auth: {
-        token: user.token,
-      },
-    });
+    // Skip WebSocket connection in demo mode
+    if (DEMO_MODE) {
+      setIsConnected(true);
+      return;
+    }
 
-    socketRef.current.on('connect', () => {
+    const wsUrl = WEBSOCKET_URL.replace('wss://', 'ws://').replace('https://', 'ws://').replace('http://', 'ws://');
+    const fullUrl = `${wsUrl}/ws?user_id=${user.id}`;
+    
+    console.log('Connecting to WebSocket:', fullUrl);
+    
+    wsRef.current = new WebSocket(fullUrl);
+
+    wsRef.current.onopen = () => {
       console.log('WebSocket connected');
-    });
+      setIsConnected(true);
+    };
 
-    socketRef.current.on('orderUpdate', (data: any) => {
-      if (onMessageRef.current) {
-        onMessageRef.current(data);
+    wsRef.current.onmessage = (event) => {
+      try {
+        const message: WebSocketMessage = JSON.parse(event.data);
+        if (onMessageRef.current) {
+          onMessageRef.current(message);
+        }
+      } catch (err) {
+        console.error('Failed to parse WebSocket message:', err);
       }
-    });
+    };
 
-    socketRef.current.on('disconnect', () => {
+    wsRef.current.onclose = () => {
       console.log('WebSocket disconnected');
-    });
+      setIsConnected(false);
+    };
+
+    wsRef.current.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
 
     return () => {
-      socketRef.current?.disconnect();
-      socketRef.current = null;
+      wsRef.current?.close();
+      wsRef.current = null;
     };
   }, [user]);
 
   const sendMessage = useCallback((event: string, data: any) => {
-    socketRef.current?.emit(event, data);
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: event, data }));
+    }
   }, []);
 
-  return { sendMessage };
+  return { sendMessage, isConnected };
 };

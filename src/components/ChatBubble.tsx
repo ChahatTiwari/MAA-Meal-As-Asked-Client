@@ -3,10 +3,13 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Button } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-import { Message, RootStackParamList } from '../types';
-import { useAppSelector } from '../hooks/redux';
+import { Message, Order, RootStackParamList } from '../types';
+import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import IngredientTable from './IngredientTable';
 import OrderStatus from './OrderStatus';
+import CookListCard from './CookListCard';
+import OrderConfirmed from './OrderConfirmed';
+import { processDemoPayment, setOrder } from '../store/slices/chatSlice';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'Chat'>;
@@ -16,14 +19,63 @@ interface ChatBubbleProps {
 }
 
 const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
+  const dispatch = useAppDispatch();
   const { colors } = useAppSelector((state) => state.theme);
+  const { currentOrder } = useAppSelector((state) => state.chat);
   const navigation = useNavigation<NavigationProp>();
   const isUser = message.sender === 'user';
+
+  const handleSelectCook = (cook: any) => {
+    // Create order with cook info and update Redux store
+    const orderWithCook: Order = {
+      id: currentOrder?.id || 'demo_order_' + Date.now(),
+      ingredients: currentOrder?.ingredients || [],
+      totalPrice: cook.mealPrice,
+      status: 'confirmed',
+      restaurant: {
+        id: cook.id,
+        name: cook.displayName,
+        image: '👩‍🍳',
+        rating: cook.rating,
+        acceptanceRate: 100,
+      },
+      bargainPrice: null,
+      notes: currentOrder?.notes || '',
+    } as Order;
+
+    // Update Redux store with the order
+    dispatch(setOrder(orderWithCook));
+
+    // Navigate to payment screen
+    navigation.navigate('Payment', {
+      order: orderWithCook,
+    });
+  };
+
+  const handleProcessPayment = () => {
+    dispatch(processDemoPayment());
+  };
 
   const renderContent = () => {
     switch (message.type) {
       case 'ingredient-table':
-        return <IngredientTable ingredients={message.data} />;
+        return (
+          <View>
+            {!!message.text && <Text style={[styles.messageText, styles.contentIntro, { color: colors.text }]}>{message.text}</Text>}
+            <IngredientTable ingredients={message.data} />
+          </View>
+        );
+      case 'cook-list':
+        return (
+          <View>
+            <Text style={[styles.messageText, styles.contentIntro, { color: colors.text }]}>{message.text}</Text>
+            {message.data && message.data.map((cook: any) => (
+              <CookListCard key={cook.id} cook={cook} onSelect={handleSelectCook} />
+            ))}
+          </View>
+        );
+      case 'order-confirmed':
+        return <OrderConfirmed order={message.data?.order} cook={message.data?.cook} />;
       case 'order-status':
         return <OrderStatus order={message.data} />;
       case 'payment':
@@ -81,7 +133,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   bubble: {
-    maxWidth: '80%',
+    maxWidth: '92%',
     padding: 12,
     borderRadius: 16,
     shadowOffset: { width: 0, height: 1 },
@@ -92,6 +144,9 @@ const styles = StyleSheet.create({
   messageText: {
     fontSize: 16,
     lineHeight: 20,
+  },
+  contentIntro: {
+    marginBottom: 8,
   },
   timestamp: {
     fontSize: 12,

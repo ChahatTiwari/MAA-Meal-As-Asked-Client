@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { login, signup, clearError } from '../store/slices/authSlice';
 import { toggleTheme } from '../store/slices/themeSlice';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { DEMO_ACCOUNTS } from '../services/mockData';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 6;
@@ -85,6 +86,13 @@ const AuthScreen: React.FC = () => {
 
   const handleToggleMode = () => {
     setIsLogin(!isLogin);
+  };
+
+  const handleDemoFill = (email: string, password: string) => {
+    setEmail(email);
+    setPassword(password);
+    setEmailError('');
+    setPasswordError('');
   };
 
   const handleToggleTheme = () => {
@@ -193,6 +201,30 @@ const AuthScreen: React.FC = () => {
             >
               {isLogin ? 'Sign In' : 'Create Account'}
             </Button>
+
+            {isLogin && (
+              <View style={styles.demoSection}>
+                <Text style={[styles.demoTitle, { color: colors.textSecondary }]}>
+                  🎬 Demo Accounts
+                </Text>
+                <View style={styles.demoButtons}>
+                  {DEMO_ACCOUNTS.map((account) => (
+                    <Button
+                      key={account.email}
+                      mode="outlined"
+                      onPress={() => handleDemoFill(account.email, account.password)}
+                      style={styles.demoButton}
+                      textColor={colors.primary}
+                    >
+                      {account.label}
+                    </Button>
+                  ))}
+                </View>
+                <Text style={[styles.demoHint, { color: colors.textSecondary }]}>
+                  Tap to fill credentials, then press Sign In
+                </Text>
+              </View>
+            )}
           </View>
         </Card>
 
@@ -262,6 +294,31 @@ const styles = StyleSheet.create({
   storeError: {
     marginTop: 8,
     textAlign: 'center',
+  },
+  demoSection: {
+    marginTop: 20,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  demoTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  demoButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  demoButton: {
+    flex: 1,
+  },
+  demoHint: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
   themeToggle: {
     flexDirection: 'row',
