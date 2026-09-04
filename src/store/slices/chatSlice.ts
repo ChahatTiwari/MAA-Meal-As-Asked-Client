@@ -1,38 +1,22 @@
 // store/slices/chatSlice.ts
+// Chat Redux slice with TypeScript types
+
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Message, Order, Ingredient } from '../../types';
+import { 
+  Message, 
+  Order, 
+  Ingredient, 
+  Cook,
+  ChatState,
+  DemoFlowStep,
+  SendMessageRequest,
+  SendMessageResponse,
+  ConfirmOrderRequest,
+  BargainOrderRequest,
+} from '../../types';
 import { chatApi, orderApi } from '../../services/api';
 
-interface ChatState {
-  messages: Message[];
-  currentOrder: Order | null;
-  isLoading: boolean;
-  error: string | null;
-  // Demo flow state
-  demoFlowStep: 'idle' | 'ingredients' | 'searching_cooks' | 'cooks_found' | 'payment' | 'confirmed';
-  nearbyCooks: any[];
-  selectedCook: any | null;
-}
-
-const initialState: ChatState = {
-  messages: [
-    {
-      id: '1',
-      text: 'What would you like to eat? 🍽️',
-      sender: 'ai',
-      timestamp: new Date().toISOString(),
-      type: 'text',
-    }
-  ],
-  currentOrder: null,
-  isLoading: false,
-  error: null,
-  demoFlowStep: 'idle',
-  nearbyCooks: [],
-  selectedCook: null,
-};
-
-// Dal Chawal ingredients with prices for demo
+// Demo data
 const DAL_CHAWAL_INGREDIENTS: Ingredient[] = [
   { id: '1', name: 'Rice', selected: true, notes: '', price: 30 },
   { id: '2', name: 'Pulses (Dal)', selected: true, notes: '', price: 40 },
@@ -44,8 +28,7 @@ const DAL_CHAWAL_INGREDIENTS: Ingredient[] = [
   { id: '8', name: 'Spices (Turmeric, Cumin, Coriander)', selected: true, notes: '', price: 20 },
 ];
 
-// Mock nearby cooks for demo
-const MOCK_NEARBY_COOKS = [
+const MOCK_NEARBY_COOKS: Cook[] = [
   {
     id: 'cook1',
     userId: 'user1',
@@ -93,7 +76,6 @@ const MOCK_NEARBY_COOKS = [
   },
 ];
 
-// Helper function to create a new order from ingredients
 const createOrderFromIngredients = (ingredients: Ingredient[]): Order => {
   const selectedIngredients = ingredients.filter(ing => ing.selected);
   const totalPrice = selectedIngredients.reduce((sum, ing) => sum + ing.price, 0);
@@ -110,15 +92,14 @@ const createOrderFromIngredients = (ingredients: Ingredient[]): Order => {
   
   return {
     id: 'order_' + Date.now(),
-    ingredients: ingredients,
-    totalPrice: totalPrice,
+    ingredients,
+    totalPrice,
     status: 'pending',
     restaurant: randomRestaurant,
-    bargainPrice: totalPrice > 0 ? Math.floor(totalPrice * 0.9) : null
+    bargainPrice: totalPrice > 0 ? Math.floor(totalPrice * 0.9) : null,
   };
 };
 
-// Helper to convert backend ingredient format to frontend format
 const convertIngredients = (backendIngredients: any[]): Ingredient[] => {
   return backendIngredients.map((ing, index) => ({
     id: ing.id || index.toString(),
@@ -129,15 +110,36 @@ const convertIngredients = (backendIngredients: any[]): Ingredient[] => {
   }));
 };
 
+const initialState: ChatState = {
+  messages: [
+    {
+      id: '1',
+      text: 'What would you like to eat? 🍽️',
+      sender: 'ai',
+      timestamp: new Date().toISOString(),
+      type: 'text',
+    }
+  ],
+  currentOrder: null,
+  isLoading: false,
+  error: null,
+  demoFlowStep: 'idle',
+  nearbyCooks: [],
+  selectedCook: null,
+};
+
+// Async thunks
 export const sendMessage = createAsyncThunk(
   'chat/sendMessage',
-  async ({ message, orderId }: { message: string; orderId?: string }, { rejectWithValue }) => {
+  async (request: SendMessageRequest, { rejectWithValue }) => {
     try {
-      const response = await chatApi.sendMessage(message, orderId);
-      if (response.data.error) return rejectWithValue(response.data.error);
-      return response.data;
+      const response = await chatApi.sendMessage(request);
+      if (response.success) {
+        return response.data as SendMessageResponse;
+      }
+      return rejectWithValue(response.error || 'Failed to send message');
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || error.message || 'Failed to send message');
+      return rejectWithValue(error.message || 'Failed to send message');
     }
   }
 );
@@ -148,10 +150,19 @@ export const confirmOrder = createAsyncThunk(
     try {
       const state = getState() as { chat: ChatState };
       if (!state.chat.currentOrder) return rejectWithValue('Order not found');
-      const response = await orderApi.confirmOrder(state.chat.currentOrder.id, selectedIngredients);
-      return response.data;
+      
+      const request: ConfirmOrderRequest = {
+        order_id: state.chat.currentOrder.id,
+        selected_ingredients: selectedIngredients,
+      };
+      
+      const response = await orderApi.confirmOrder(request);
+      if (response.success) {
+        return response.data;
+      }
+      return rejectWithValue(response.error || 'Failed to confirm order');
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || error.message || 'Failed to confirm order');
+      return rejectWithValue(error.message || 'Failed to confirm order');
     }
   }
 );
@@ -162,23 +173,29 @@ export const bargainOrder = createAsyncThunk(
     try {
       const state = getState() as { chat: ChatState };
       if (!state.chat.currentOrder) return rejectWithValue('Order not found');
-      const response = await orderApi.bargainOrder(state.chat.currentOrder.id, offerPrice);
-      return response.data;
+      
+      const request: BargainOrderRequest = {
+        order_id: state.chat.currentOrder.id,
+        offer_price: offerPrice,
+      };
+      
+      const response = await orderApi.bargainOrder(request);
+      if (response.success) {
+        return response.data;
+      }
+      return rejectWithValue(response.error || 'Failed to bargain');
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || error.message || 'Failed to bargain');
+      return rejectWithValue(error.message || 'Failed to bargain');
     }
   }
 );
 
-// Demo async thunks
+// Demo thunks
 export const startDemoOrder = createAsyncThunk(
   'chat/startDemoOrder',
   async (userMessage: string, { dispatch, rejectWithValue }) => {
     try {
-      // Add user message with actual text they typed
       dispatch(addUserMessage(userMessage));
-      
-      // Simulate AI response with ingredients
       await new Promise(resolve => setTimeout(resolve, 800));
       
       const aiMessage: Message = {
@@ -203,7 +220,6 @@ export const confirmDemoIngredients = createAsyncThunk(
     try {
       const totalPrice = selectedIngredients.reduce((sum, ing) => sum + ing.price, 0);
       
-      // Create order
       const order: Order = {
         id: 'demo_order_' + Date.now(),
         ingredients: selectedIngredients,
@@ -213,7 +229,6 @@ export const confirmDemoIngredients = createAsyncThunk(
         bargainPrice: null,
       };
       
-      // Add confirmation message
       const confirmMessage: Message = {
         id: Date.now().toString(),
         text: `✅ Ingredients confirmed! Total: ₹${totalPrice}\n\n🔍 Finding MAA nearby...`,
@@ -223,10 +238,8 @@ export const confirmDemoIngredients = createAsyncThunk(
       };
       dispatch(addMessage(confirmMessage));
       
-      // Simulate searching for cooks
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Return cooks found
       return { order, cooks: MOCK_NEARBY_COOKS };
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to confirm ingredients');
@@ -236,7 +249,7 @@ export const confirmDemoIngredients = createAsyncThunk(
 
 export const selectDemoCook = createAsyncThunk(
   'chat/selectDemoCook',
-  async (cook: any, { dispatch, rejectWithValue, getState }) => {
+  async (cook: Cook, { dispatch, rejectWithValue, getState }) => {
     try {
       const state = getState() as { chat: ChatState };
       if (!state.chat.currentOrder) {
@@ -245,7 +258,7 @@ export const selectDemoCook = createAsyncThunk(
 
       const order: Order = {
         ...state.chat.currentOrder,
-        totalPrice: cook.mealPrice,
+        totalPrice: cook.mealPrice!,
         status: 'confirmed',
         restaurant: {
           id: cook.id,
@@ -282,7 +295,6 @@ export const processDemoPayment = createAsyncThunk(
         return rejectWithValue('Order not found');
       }
 
-      // Get cook info from order's restaurant or selectedCook
       const cook = state.chat.selectedCook || {
         id: order.restaurant?.id,
         displayName: order.restaurant?.name,
@@ -295,7 +307,6 @@ export const processDemoPayment = createAsyncThunk(
         return rejectWithValue('Cook information not found');
       }
       
-      // Simulate payment processing
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       const finalOrder: Order = {
@@ -380,7 +391,6 @@ const chatSlice = createSlice({
       }
     },
     toggleIngredientSelection: (state, action: PayloadAction<{ ingredientId: string; selected: boolean }>) => {
-      // Update the ingredient in the latest message data first
       const latestIngredientMessage = state.messages
         .slice()
         .reverse()
@@ -393,7 +403,6 @@ const chatSlice = createSlice({
         }
       }
       
-      // Update current order if it exists
       if (state.currentOrder) {
         const ingredient = state.currentOrder.ingredients.find(ing => ing.id === action.payload.ingredientId);
         if (ingredient) {
@@ -405,7 +414,16 @@ const chatSlice = createSlice({
             : null;
         }
       }
-    }
+    },
+    setDemoFlowStep: (state, action: PayloadAction<DemoFlowStep>) => {
+      state.demoFlowStep = action.payload;
+    },
+    setNearbyCooks: (state, action: PayloadAction<Cook[]>) => {
+      state.nearbyCooks = action.payload;
+    },
+    setSelectedCook: (state, action: PayloadAction<Cook | null>) => {
+      state.selectedCook = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -417,13 +435,11 @@ const chatSlice = createSlice({
       .addCase(sendMessage.fulfilled, (state, action) => {
         state.isLoading = false;
         
-        // Validate the response structure
         if (!action.payload || typeof action.payload !== 'object') {
           state.error = "Invalid response from server";
           return;
         }
 
-        // Add AI response message
         const aiMessage: Message = {
           id: (Date.now() + 1).toString(),
           text: action.payload.response || "Here's what I found:",
@@ -434,10 +450,8 @@ const chatSlice = createSlice({
         };
         state.messages.push(aiMessage);
         
-        // Create dynamic current order from the received ingredients
         if (action.payload.ingredients && Array.isArray(action.payload.ingredients) && action.payload.ingredients.length > 0) {
           state.currentOrder = createOrderFromIngredients(convertIngredients(action.payload.ingredients));
-          // Preserve the order_id from backend
           state.currentOrder.id = action.payload.order_id || state.currentOrder.id;
           state.demoFlowStep = 'ingredients';
         }
@@ -447,7 +461,6 @@ const chatSlice = createSlice({
         const errorMessage = action.payload as string || action.error.message || 'Failed to send message';
         state.error = errorMessage;
         
-        // Add error message to chat
         const errorChatMessage: Message = {
           id: Date.now().toString(),
           text: `Sorry, I encountered an error: ${errorMessage}. Please try again.`,
@@ -457,6 +470,7 @@ const chatSlice = createSlice({
         };
         state.messages.push(errorChatMessage);
       })
+      // Start demo order
       .addCase(startDemoOrder.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -486,7 +500,6 @@ const chatSlice = createSlice({
       .addCase(confirmOrder.fulfilled, (state, action) => {
         state.isLoading = false;
         
-        // Backend returns order with status, final_price, etc.
         const backendOrder = action.payload;
         if (state.currentOrder && backendOrder) {
           state.currentOrder = {
@@ -563,7 +576,7 @@ const chatSlice = createSlice({
         };
         state.messages.push(errorMessage2);
       })
-      // Demo ingredient confirmation and nearby MAA discovery
+      // Demo ingredient confirmation
       .addCase(confirmDemoIngredients.pending, (state) => {
         state.isLoading = true;
         state.demoFlowStep = 'searching_cooks';
@@ -634,6 +647,9 @@ export const {
   acceptBargain,
   createOrderFromCurrentIngredients,
   toggleIngredientSelection,
+  setDemoFlowStep,
+  setNearbyCooks,
+  setSelectedCook,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

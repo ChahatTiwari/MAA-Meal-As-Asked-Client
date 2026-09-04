@@ -1,24 +1,17 @@
 // store/slices/themeSlice.ts
-import { createSlice } from '@reduxjs/toolkit';
+// Theme Redux slice with TypeScript types
+
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { theme, type ThemeColors } from '../../theme';
 
 interface ThemeState {
   isDark: boolean;
-  colors: {
-    primary: string;
-    background: string;
-    surface: string;
-    text: string;
-    textSecondary: string;
-  };
+  colors: ThemeColors;
 }
 
-const getColors = (isDark: boolean) => ({
-  primary: '#FF6B35',
-  background: isDark ? '#121212' : '#F7F9FC',
-  surface: isDark ? '#1E1E1E' : '#FFFFFF',
-  text: isDark ? '#FFFFFF' : '#2C3E50',
-  textSecondary: isDark ? '#B0B0B0' : '#7F8C8D',
-});
+const getColors = (isDark: boolean): ThemeColors => {
+  return isDark ? theme.colors.dark : theme.colors.light;
+};
 
 const initialState: ThemeState = {
   isDark: false,
@@ -33,7 +26,7 @@ const themeSlice = createSlice({
       state.isDark = !state.isDark;
       state.colors = getColors(state.isDark);
     },
-    setTheme: (state, action) => {
+    setTheme: (state, action: PayloadAction<boolean>) => {
       state.isDark = action.payload;
       state.colors = getColors(action.payload);
     },
