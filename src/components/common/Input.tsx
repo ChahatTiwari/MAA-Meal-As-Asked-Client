@@ -5,7 +5,9 @@ import React from 'react';
 import { View, Text, StyleSheet, TextInput as RNTextInput, TextInputProps } from 'react-native';
 import { theme, type ThemeColors } from '../../theme';
 
-interface InputProps extends Omit<TextInputProps, 'size' | 'onChangeText'> {
+type AutoCompleteType = TextInputProps['autoComplete'];
+
+interface InputProps extends Omit<TextInputProps, 'onChangeText' | 'autoComplete'> {
   label?: string;
   placeholder?: string;
   value: string;
@@ -21,7 +23,7 @@ interface InputProps extends Omit<TextInputProps, 'size' | 'onChangeText'> {
   numberOfLines?: number;
   keyboardType?: TextInputProps['keyboardType'];
   autoCapitalize?: TextInputProps['autoCapitalize'];
-  autoComplete?: string;
+  autoComplete?: AutoCompleteType;
   disabled?: boolean;
   required?: boolean;
   themeColors?: ThemeColors;
@@ -30,6 +32,9 @@ interface InputProps extends Omit<TextInputProps, 'size' | 'onChangeText'> {
   labelStyle?: any;
   errorStyle?: any;
 }
+
+// Props to exclude from spreading to RNTextInput
+type InputNativeProps = Omit<InputProps, 'label' | 'placeholder' | 'value' | 'onChangeText' | 'error' | 'helperText' | 'variant' | 'size' | 'leftIcon' | 'rightIcon' | 'secureTextEntry' | 'multiline' | 'numberOfLines' | 'keyboardType' | 'autoCapitalize' | 'autoComplete' | 'disabled' | 'required' | 'themeColors' | 'style' | 'inputStyle' | 'labelStyle' | 'errorStyle'>;
 
 const Input: React.FC<InputProps> = ({
   label,
@@ -55,7 +60,8 @@ const Input: React.FC<InputProps> = ({
   inputStyle,
   labelStyle,
   errorStyle,
-  ...props
+  // Exclude custom props from spreading to RNTextInput
+  ...nativeProps
 }) => {
   const colors = themeColors || theme.colors.light;
   const hasError = !!error;
@@ -185,12 +191,7 @@ const Input: React.FC<InputProps> = ({
             styles.iconWrapper,
             { width: sizeStyles.iconSize, marginRight: 8 }
           ]}>
-            {React.isValidElement(leftIcon)
-              ? React.cloneElement(leftIcon as React.ReactElement, {
-                  size: sizeStyles.iconSize,
-                  color: hasError ? colors.error : colors.textSecondary,
-                })
-              : leftIcon}
+            {leftIcon}
           </View>
         )}
         <RNTextInput
@@ -205,22 +206,16 @@ const Input: React.FC<InputProps> = ({
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
           autoComplete={autoComplete}
-          disabled={disabled}
           editable={!disabled}
           selectionColor={colors.primary}
-          {...props}
+          {...nativeProps}
         />
         {rightIcon && (
           <View style={[
             styles.iconWrapper,
             { width: sizeStyles.iconSize, marginLeft: 8 }
           ]}>
-            {React.isValidElement(rightIcon)
-              ? React.cloneElement(rightIcon as React.ReactElement, {
-                  size: sizeStyles.iconSize,
-                  color: hasError ? colors.error : colors.textSecondary,
-                })
-              : rightIcon}
+            {rightIcon}
           </View>
         )}
       </View>

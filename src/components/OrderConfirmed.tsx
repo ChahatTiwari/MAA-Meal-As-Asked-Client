@@ -1,7 +1,8 @@
 // components/OrderConfirmed.tsx
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Easing, Image } from 'react-native';
-import { Card, Button, IconButton } from 'react-native-paper';
+import { View, Text, StyleSheet, Animated, Easing, Image, Alert } from 'react-native';
+import { Card } from 'react-native-paper';
+import Button from './common/Button';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { resetChat } from '../store/slices/chatSlice';
 
@@ -37,7 +38,10 @@ const OrderConfirmed: React.FC<OrderConfirmedProps> = ({ order, cook }) => {
 
   const handleTrackOrder = () => {
     // For demo, show order tracking info
-    alert('📦 Order Tracking\n\nYour order is being prepared by ' + cook?.displayName + '.\n\nEstimated delivery: 25-30 minutes\n\nYou will receive updates as your order progresses.');
+    Alert.alert(
+      'Order Tracking',
+      'Your order is being prepared by ' + cook?.displayName + '.\n\nEstimated delivery: 25-30 minutes\n\nYou will receive updates as your order progresses.'
+    );
   };
 
   const handleNewOrder = () => {
@@ -93,22 +97,18 @@ const OrderConfirmed: React.FC<OrderConfirmedProps> = ({ order, cook }) => {
           {/* Action Buttons */}
           <View style={styles.buttonRow}>
             <Button
-              mode="outlined"
+              variant="outlined"
               onPress={handleTrackOrder}
               style={styles.trackButton}
-              contentStyle={styles.buttonContent}
-              icon="map-marker"
-              labelStyle={{ fontWeight: '600', fontSize: 14 }}
+              leftIcon={<Text>📍</Text>}
             >
               Track Order
             </Button>
             <Button
-              mode="contained"
+              variant="contained"
               onPress={handleNewOrder}
-              style={[styles.newOrderButton, { backgroundColor: colors.primary }]}
-              contentStyle={styles.buttonContent}
-              icon="plus"
-              labelStyle={{ fontWeight: '600', fontSize: 14, color: 'white' }}
+              style={styles.newOrderButton}
+              leftIcon={<Text>➕</Text>}
             >
               New Order
             </Button>

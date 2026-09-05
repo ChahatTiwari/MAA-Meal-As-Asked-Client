@@ -2,7 +2,8 @@
 // Centralized error handling utilities
 
 import { env } from '../config/env';
-import { ApiError, ApiClientError } from '../services/api/client';
+import { ApiClientError } from '../services/api/client';
+import { ApiError } from '../types';
 
 /**
  * Error categories for better handling

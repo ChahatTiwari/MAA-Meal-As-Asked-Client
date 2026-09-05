@@ -2,7 +2,7 @@
 // Redux persistence middleware for auth state
 
 import { Middleware } from '@reduxjs/toolkit';
-import { storage } from '../../services/storage';
+import { storage } from '../../services/storage/index';
 import { RootState } from '../index';
 
 const AUTH_STATE_KEY = 'redux_auth_state';
@@ -13,12 +13,17 @@ interface PersistedAuthState {
   isAuthenticated: RootState['auth']['isAuthenticated'];
 }
 
-export const persistenceMiddleware: Middleware<{}, RootState> = (store) => (next) => (action) => {
+// Extend Middleware type to include debounceTimer
+interface MiddlewareWithTimer extends Middleware {
+  debounceTimer?: NodeJS.Timeout | null;
+}
+
+export const persistenceMiddleware: MiddlewareWithTimer = (store) => (next) => (action: any) => {
   const result = next(action);
   
   // Persist auth state changes
   if (action.type.startsWith('auth/')) {
-    const state = store.getState();
+    const state = store.getState() as RootState;
     const authState: PersistedAuthState = {
       user: state.auth.user,
       role: state.auth.role,
@@ -41,8 +46,7 @@ export const persistenceMiddleware: Middleware<{}, RootState> = (store) => (next
   return result;
 };
 
-// Add debounce timer property
-(persistenceMiddleware as any).debounceTimer = null;
+persistenceMiddleware.debounceTimer = null;
 
 /**
  * Load persisted auth state

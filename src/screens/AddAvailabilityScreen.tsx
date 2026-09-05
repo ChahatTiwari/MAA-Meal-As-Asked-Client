@@ -105,14 +105,23 @@ const AddAvailabilityScreen: React.FC = () => {
   };
 
   const showTimePicker = (field: 'startTime' | 'endTime') => {
-    const [hours, minutes] = formData[field].split(':').map(Number);
-    const is24Hours = true;
-    
-    // Simple time picker using prompt for now
-    const newTime = prompt(`Enter ${field === 'startTime' ? 'start' : 'end'} time (HH:MM 24hr):`, formData[field]);
-    if (newTime && /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(newTime)) {
-      updateField(field, newTime);
-    }
+    Alert.prompt(
+      `Enter ${field === 'startTime' ? 'start' : 'end'} time (HH:MM 24hr):`,
+      '',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'OK', 
+          onPress: (newTime?: string) => {
+            if (newTime && /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(newTime)) {
+              updateField(field, newTime);
+            }
+          } 
+        }
+      ],
+      'plain-text',
+      formData[field]
+    );
   };
 
   if (isLoading && !formData.dayOfWeek) {

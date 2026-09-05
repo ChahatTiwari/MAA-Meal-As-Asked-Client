@@ -9,7 +9,7 @@ import axios, {
   InternalAxiosRequestConfig,
 } from 'axios';
 import { env } from '../../config/env';
-import { storage } from '../storage';
+import { storage } from '../storage/index';
 import { ApiError, ApiResponse, AuthTokens } from '../../types';
 
 /**

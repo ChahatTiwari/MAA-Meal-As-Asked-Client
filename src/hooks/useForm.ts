@@ -2,7 +2,8 @@
 // Form hook with validation
 
 import { useState, useCallback, useMemo } from 'react';
-import { validateForm, validateField, FieldValidation, FormValidation } from '../utils/validation';
+import { validateForm, validateField } from '../utils/validation';
+import { FieldValidation, FormValidation } from '../types';
 
 interface UseFormOptions<T extends Record<string, any>> {
   initialValues: T;

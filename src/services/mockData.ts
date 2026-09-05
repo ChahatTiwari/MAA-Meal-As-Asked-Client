@@ -197,7 +197,7 @@ export const demoAvailabilities: Availability[] = [
    DEMO ORDERS
    ========================================================= */
 
-export const demoOrders: CookOrder[] = [
+export const demoOrders = [
   {
     id: 'ORD123456',
     cookId: 'cook-1',

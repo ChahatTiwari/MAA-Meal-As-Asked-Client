@@ -6,6 +6,9 @@ import { storage } from '../../services/storage';
 import { User, UserRole, AuthState, AuthTokens } from '../../types';
 import { authApi } from '../../services/api';
 
+// Re-export AuthState for store configuration
+export type { AuthState };
+
 const initialState: AuthState = {
   user: null,
   isLoading: true,
@@ -20,7 +23,7 @@ export const checkAuthState = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const [user, token] = await Promise.all([
-        storage.getUser<User>(),
+        storage.getUser(),
         storage.getToken(),
       ]);
 
@@ -38,11 +41,12 @@ export const login = createAsyncThunk(
   'auth/login',
   async (credentials: { email: string; password: string }, { rejectWithValue }) => {
     try {
-      const response = await authApi.login(credentials);
-      if (response.success && response.data) {
-        return response.data;
+      const response = await authApi.login(credentials.email, credentials.password);
+      const data = response.data;
+      if (data && (data as any).user) {
+        return (data as any);
       }
-      return rejectWithValue(response.error || 'Login failed');
+      return rejectWithValue((data as any)?.message || 'Login failed');
     } catch (error: any) {
       return rejectWithValue(error.message || 'Login failed');
     }
@@ -53,11 +57,12 @@ export const signup = createAsyncThunk(
   'auth/signup',
   async (data: { email: string; password: string; name: string }, { rejectWithValue }) => {
     try {
-      const response = await authApi.register(data);
-      if (response.success && response.data) {
-        return response.data;
+      const response = await authApi.register(data.email, data.password, data.name);
+      const resData = response.data;
+      if (resData && (resData as any).user) {
+        return (resData as any);
       }
-      return rejectWithValue(response.error || 'Signup failed');
+      return rejectWithValue((resData as any)?.message || 'Signup failed');
     } catch (error: any) {
       return rejectWithValue(error.message || 'Signup failed');
     }
@@ -66,6 +71,7 @@ export const signup = createAsyncThunk(
 
 export const logout = createAsyncThunk('auth/logout', async () => {
   await authApi.logout();
+  return true;
 });
 
 export const updateProfile = createAsyncThunk(
@@ -73,10 +79,11 @@ export const updateProfile = createAsyncThunk(
   async (data: Partial<User>, { rejectWithValue }) => {
     try {
       const response = await authApi.updateProfile(data);
-      if (response.success && response.data) {
-        return response.data;
+      const resData = response.data;
+      if (resData) {
+        return resData;
       }
-      return rejectWithValue(response.error || 'Failed to update profile');
+      return rejectWithValue((resData as any)?.message || 'Failed to update profile');
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to update profile');
     }

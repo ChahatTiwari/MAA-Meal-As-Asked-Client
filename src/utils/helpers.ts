@@ -1,12 +1,27 @@
 // utils/helpers.ts
 // Common utility functions
 
-import { formatCurrency as formatCurrencyUtil, getGreeting as getGreetingUtil } from '../constants';
-
 /**
  * Format currency in Indian Rupees
  */
-export const formatCurrency = formatCurrencyUtil;
+export const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
+
+/**
+ * Get time-based greeting
+ */
+export const getGreeting = (): string => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+};
 
 /**
  * Format number with Indian numbering system
@@ -59,10 +74,7 @@ export const formatRelativeTime = (date: Date | string): string => {
   return formatDate(d);
 };
 
-/**
- * Get greeting based on time of day
- */
-export const getGreeting = getGreetingUtil;
+
 
 /**
  * Generate unique ID
@@ -372,7 +384,9 @@ export const mask = {
  * Check if running on web
  */
 export const isWeb = (): boolean => {
-  return typeof window !== 'undefined' && typeof document !== 'undefined';
+  return typeof globalThis !== 'undefined' && 
+         typeof (globalThis as any).window !== 'undefined' && 
+         typeof (globalThis as any).document !== 'undefined';
 };
 
 /**

@@ -4,7 +4,7 @@
 import { Middleware } from '@reduxjs/toolkit';
 import { logger } from '../../utils/logger';
 
-export const loggerMiddleware: Middleware = (store) => (next) => (action) => {
+export const loggerMiddleware: Middleware = (store) => (next) => (action: any) => {
   if (!__DEV__) return next(action);
   
   const startTime = Date.now();

@@ -20,6 +20,9 @@ interface ButtonProps extends Omit<TouchableOpacityProps, 'onPress'> {
   themeColors?: ThemeColors;
 }
 
+// Props to exclude from spreading to TouchableOpacity
+type ButtonNativeProps = Omit<ButtonProps, 'variant' | 'size' | 'fullWidth' | 'loading' | 'leftIcon' | 'rightIcon' | 'themeColors'>;
+
 const Button: React.FC<ButtonProps> = ({
   children,
   variant = 'contained',
@@ -32,7 +35,7 @@ const Button: React.FC<ButtonProps> = ({
   onPress,
   style,
   themeColors,
-  ...props
+  ...nativeProps
 }) => {
   const colors = themeColors || theme.colors.light;
   const isDisabled = disabled || loading;
@@ -125,7 +128,7 @@ const Button: React.FC<ButtonProps> = ({
       disabled={isDisabled}
       accessibilityRole="button"
       accessibilityState={{ disabled: isDisabled }}
-      {...props}
+      {...nativeProps}
     >
       {loading ? (
         <ActivityIndicator
@@ -137,12 +140,7 @@ const Button: React.FC<ButtonProps> = ({
         <>
           {leftIcon && (
             <View style={styles.iconLeft}>
-              {React.isValidElement(leftIcon) 
-                ? React.cloneElement(leftIcon as React.ReactElement, { 
-                    size: sizeStyles.iconSize, 
-                    color: variantStyles.textColor 
-                  })
-                : leftIcon}
+              {leftIcon}
             </View>
           )}
           <Text style={textStyle} numberOfLines={1}>
@@ -150,12 +148,7 @@ const Button: React.FC<ButtonProps> = ({
           </Text>
           {rightIcon && (
             <View style={styles.iconRight}>
-              {React.isValidElement(rightIcon)
-                ? React.cloneElement(rightIcon as React.ReactElement, {
-                    size: sizeStyles.iconSize,
-                    color: variantStyles.textColor,
-                  })
-                : rightIcon}
+              {rightIcon}
             </View>
           )}
         </>

@@ -2,7 +2,7 @@
 // Toast/Snackbar notifications
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
+import { View, Text, StyleSheet, Animated, Platform, TouchableOpacity } from 'react-native';
 import { theme, type ThemeColors } from '../../theme';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
@@ -54,6 +54,7 @@ const ToastItem: React.FC<{ toast: ToastData; onDismiss: () => void; themeColors
       }, toast.duration || 4000);
       return () => clearTimeout(timer);
     }
+    return () => {};
   }, []);
 
   const dismiss = () => {
@@ -98,9 +99,11 @@ const ToastItem: React.FC<{ toast: ToastData; onDismiss: () => void; themeColors
           </Text>
         </View>
       )}
-      <View style={styles.dismiss} onPress={dismiss}>
-        <Text style={[{ color: typeStyle.text, opacity: 0.7 }, styles.dismissText]}>✕</Text>
-      </View>
+<View style={styles.dismiss}>
+          <TouchableOpacity onPress={dismiss}>
+            <Text style={[{ color: typeStyle.text, opacity: 0.7 }, styles.dismissText]}>✕</Text>
+          </TouchableOpacity>
+        </View>
     </Animated.View>
   );
 };

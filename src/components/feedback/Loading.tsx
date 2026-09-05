@@ -99,7 +99,7 @@ export const LoadingOverlay: React.FC<{
   if (!visible) return <>{children}</>;
   
   return (
-    <View style={styles.overlayContainer}>
+    <View style={overlayStyles.overlayContainer}>
       {children}
       <Loading text={text} overlay themeColors={themeColors} />
     </View>
@@ -127,7 +127,7 @@ export const Skeleton: React.FC<{
   return (
     <View
       style={[
-        styles.skeleton,
+        skeletonStyles.skeleton,
         {
           width,
           height,

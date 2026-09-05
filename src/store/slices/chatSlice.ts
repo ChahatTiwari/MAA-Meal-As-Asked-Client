@@ -16,6 +16,9 @@ import {
 } from '../../types';
 import { chatApi, orderApi } from '../../services/api';
 
+// Re-export ChatState for store configuration
+export type { ChatState };
+
 // Demo data
 const DAL_CHAWAL_INGREDIENTS: Ingredient[] = [
   { id: '1', name: 'Rice', selected: true, notes: '', price: 30 },
@@ -133,11 +136,12 @@ export const sendMessage = createAsyncThunk(
   'chat/sendMessage',
   async (request: SendMessageRequest, { rejectWithValue }) => {
     try {
-      const response = await chatApi.sendMessage(request);
-      if (response.success) {
-        return response.data as SendMessageResponse;
+      const response = await chatApi.sendMessage(request.message, request.orderId);
+      const data = response.data;
+      if (data && (data as any).response) {
+        return data as SendMessageResponse;
       }
-      return rejectWithValue(response.error || 'Failed to send message');
+      return rejectWithValue((data as any)?.error || 'Failed to send message');
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to send message');
     }
@@ -151,16 +155,12 @@ export const confirmOrder = createAsyncThunk(
       const state = getState() as { chat: ChatState };
       if (!state.chat.currentOrder) return rejectWithValue('Order not found');
       
-      const request: ConfirmOrderRequest = {
-        order_id: state.chat.currentOrder.id,
-        selected_ingredients: selectedIngredients,
-      };
-      
-      const response = await orderApi.confirmOrder(request);
-      if (response.success) {
-        return response.data;
+      const response = await orderApi.confirmOrder(state.chat.currentOrder.id, selectedIngredients);
+      const data = response.data;
+      if (data) {
+        return data;
       }
-      return rejectWithValue(response.error || 'Failed to confirm order');
+      return rejectWithValue((data as any)?.error || 'Failed to confirm order');
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to confirm order');
     }
@@ -174,16 +174,12 @@ export const bargainOrder = createAsyncThunk(
       const state = getState() as { chat: ChatState };
       if (!state.chat.currentOrder) return rejectWithValue('Order not found');
       
-      const request: BargainOrderRequest = {
-        order_id: state.chat.currentOrder.id,
-        offer_price: offerPrice,
-      };
-      
-      const response = await orderApi.bargainOrder(request);
-      if (response.success) {
-        return response.data;
+      const response = await orderApi.bargainOrder(state.chat.currentOrder.id, offerPrice);
+      const data = response.data;
+      if (data) {
+        return data;
       }
-      return rejectWithValue(response.error || 'Failed to bargain');
+      return rejectWithValue((data as any)?.error || 'Failed to bargain');
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to bargain');
     }

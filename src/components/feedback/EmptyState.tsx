@@ -62,10 +62,9 @@ const EmptyState: React.FC<EmptyStateProps> = ({
       )}
       {actionLabel && onAction && (
         <Button
-          mode="contained"
+          variant="contained"
           onPress={onAction}
           style={styles.actionButton}
-          contentStyle={styles.actionButtonContent}
         >
           {actionLabel}
         </Button>

@@ -2,7 +2,7 @@
 // Error state component
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { theme, type ThemeColors } from '../../theme';
 import Button from '../common/Button';
 
@@ -61,10 +61,9 @@ const ErrorState: React.FC<ErrorStateProps> = ({
       <View style={styles.actions}>
         {recoverable && onRetry && (
           <Button
-            mode="contained"
+            variant="contained"
             onPress={onRetry}
             style={styles.retryButton}
-            contentStyle={styles.buttonContent}
             leftIcon={<Text style={styles.buttonIcon}>🔄</Text>}
           >
             Try Again
@@ -72,10 +71,9 @@ const ErrorState: React.FC<ErrorStateProps> = ({
         )}
         {onDismiss && (
           <Button
-            mode="outlined"
+            variant="outlined"
             onPress={onDismiss}
             style={styles.dismissButton}
-            contentStyle={styles.buttonContent}
           >
             Dismiss
           </Button>
@@ -168,34 +166,34 @@ export const ErrorBanner: React.FC<{
 
   return (
     <View style={[
-      styles.banner,
+      bannerStyles.banner,
       { backgroundColor: colors.errorContainer }
     ]}>
-      <View style={styles.bannerContent}>
+      <View style={bannerStyles.bannerContent}>
         <Text style={[
-          styles.bannerText,
+          bannerStyles.bannerText,
           { color: colors.onErrorContainer }
         ]}>
           {message}
         </Text>
         {actionLabel && onAction && (
           <Button
-            mode="text"
+            variant="text"
             onPress={onAction}
-            style={styles.bannerAction}
+            style={bannerStyles.bannerAction}
           >
             {actionLabel}
           </Button>
         )}
         {onDismiss && (
-          <View style={styles.bannerDismiss} onPress={onDismiss}>
+          <TouchableOpacity style={bannerStyles.bannerDismiss} onPress={onDismiss}>
             <Text style={[
-              styles.bannerDismissText,
+              bannerStyles.bannerDismissText,
               { color: colors.onErrorContainer }
             ]}>
               ✕
             </Text>
-          </View>
+          </TouchableOpacity>
         )}
       </View>
     </View>

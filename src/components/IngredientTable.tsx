@@ -184,20 +184,20 @@ const IngredientTable: React.FC<IngredientTableProps> = ({
   // ====================================================
 
   const selectedIngredients = ingredients.filter(
-    (ingredient) => ingredient.selected
+    (ingredient: Ingredient) => ingredient.selected
   );
 
   const selectedCount = selectedIngredients.length;
 
   const totalPrice = selectedIngredients.reduce(
-    (sum, ingredient) => sum + ingredient.price,
+    (sum: number, ingredient: Ingredient) => sum + ingredient.price,
     0
   );
 
   const allSelected =
     ingredients.length > 0 &&
     ingredients.every(
-      (ingredient) => ingredient.selected
+      (ingredient: Ingredient) => ingredient.selected
     );
 
 
@@ -210,7 +210,7 @@ const IngredientTable: React.FC<IngredientTableProps> = ({
   ) => {
 
     const ingredient = ingredients.find(
-      (ing) => ing.id === ingredientId
+      (ing: Ingredient) => ing.id === ingredientId
     );
 
     if (!ingredient) return;
@@ -218,7 +218,7 @@ const IngredientTable: React.FC<IngredientTableProps> = ({
     const newSelected = !ingredient.selected;
 
     const updatedIngredients = ingredients.map(
-      (ing) => {
+      (ing: Ingredient) => {
 
         if (ing.id !== ingredientId) {
           return ing;
@@ -253,7 +253,7 @@ const IngredientTable: React.FC<IngredientTableProps> = ({
     const shouldSelectAll = !allSelected;
 
     const updatedIngredients = ingredients.map(
-      (ingredient) => ({
+      (ingredient: Ingredient) => ({
         ...ingredient,
         selected: shouldSelectAll,
       })
@@ -272,7 +272,7 @@ const IngredientTable: React.FC<IngredientTableProps> = ({
   const handleConfirmOrder = async () => {
 
     const selected = ingredients.filter(
-      (ingredient) => ingredient.selected
+      (ingredient: Ingredient) => ingredient.selected
     );
 
 
@@ -525,7 +525,7 @@ const IngredientTable: React.FC<IngredientTableProps> = ({
           keyboardShouldPersistTaps="handled"
         >
 
-          {ingredients.map((ingredient) => (
+          {ingredients.map((ingredient: Ingredient) => (
 
             <TouchableOpacity
               key={ingredient.id}

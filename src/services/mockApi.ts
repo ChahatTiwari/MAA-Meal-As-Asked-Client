@@ -11,12 +11,12 @@ import {
   demoNearbyCooks,
   getDemoChatResponse,
 } from './mockData';
-import { Meal, Cook, Availability, CookOrder } from '../types';
+import { Meal, Cook, Availability, CookOrder, CookOrderStatus } from '../types';
 
 // In-memory mutable state so demo CRUD operations persist during the session
 let mealsState: Meal[] = [...demoMeals];
 let availabilitiesState: Availability[] = [...demoAvailabilities];
-let ordersState: CookOrder[] = [...demoOrders];
+let ordersState: CookOrder[] = [...demoOrders] as CookOrder[];
 let cookProfileState: any = { ...demoCookProfile };
 let nearbyCooksState: Cook[] = [...demoNearbyCooks];
 
@@ -57,6 +57,16 @@ export const mockAuthApi = {
       user: { id: 'demo-user-' + Date.now(), name, email, role: 'customer' as const },
       token: 'demo-token-' + Date.now(),
     });
+  },
+
+  logout: async () => {
+    await delay();
+    return success({ message: 'Logged out successfully' });
+  },
+
+  updateProfile: async (data: any) => {
+    await delay();
+    return success({ user: data });
   },
 };
 
@@ -232,10 +242,10 @@ export const mockCookApi = {
   getOrders: async (status?: string) => {
     await delay();
     const filtered = status ? ordersState.filter(o => o.status === status) : ordersState;
-    return success({ orders: filtered });
+    return success({ orders: filtered as CookOrder[] });
   },
 
-  updateOrderStatus: async (orderId: string, status: string) => {
+  updateOrderStatus: async (orderId: string, status: CookOrderStatus) => {
     await delay();
     ordersState = ordersState.map(o => o.id === orderId ? { ...o, status, updatedAt: new Date().toISOString() } : o);
     return success({ order: ordersState.find(o => o.id === orderId) });

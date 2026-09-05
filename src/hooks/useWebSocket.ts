@@ -107,11 +107,11 @@ export const useWebSocket = (options: UseWebSocketOptions = {}): UseWebSocketRet
         }
       };
 
-      wsRef.current.onclose = (event) => {
+      wsRef.current.onclose = (event: WebSocketCloseEvent) => {
         logger.warn('WebSocket: Disconnected', { 
           code: event.code, 
           reason: event.reason,
-          wasClean: event.wasClean 
+          wasClean: (event as any).wasClean 
         }, 'WS');
         
         setIsConnected(false);
@@ -131,9 +131,9 @@ export const useWebSocket = (options: UseWebSocketOptions = {}): UseWebSocketRet
         }
       };
 
-      wsRef.current.onerror = (error) => {
-        logger.error('WebSocket: Error', { error }, 'WS');
-        onError?.(error as Error);
+      wsRef.current.onerror = (event: Event) => {
+        logger.error('WebSocket: Error', { error: event }, 'WS');
+        onError?.(new Error('WebSocket error'));
       };
     } catch (error) {
       logger.error('WebSocket: Failed to create connection', { error }, 'WS');

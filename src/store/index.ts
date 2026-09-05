@@ -1,10 +1,10 @@
 // store/index.ts
 // Redux store configuration
 
-import { configureStore } from '@reduxjs/toolkit';
-import authReducer from './slices/authSlice';
-import chatReducer from './slices/chatSlice';
-import themeReducer from './slices/themeSlice';
+import { configureStore, type Middleware } from '@reduxjs/toolkit';
+import authReducer, { type AuthState } from './slices/authSlice';
+import chatReducer, { type ChatState } from './slices/chatSlice';
+import themeReducer, { type ThemeState } from './slices/themeSlice';
 import { loggerMiddleware } from './middleware/logger';
 import { persistenceMiddleware } from './middleware/persistence';
 
@@ -24,7 +24,11 @@ export const store = configureStore({
   devTools: __DEV__,
 });
 
-export type RootState = ReturnType<typeof store.getState>;
+export type RootState = {
+  auth: AuthState;
+  chat: ChatState;
+  theme: ThemeState;
+};
 export type AppDispatch = typeof store.dispatch;
 
 // Selectors

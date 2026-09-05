@@ -274,6 +274,34 @@ export const secureStorage = {
     const value = await storage.getItemAsync(key);
     return value !== null;
   },
+
+  // ============================================================
+  // LOW-LEVEL METHODS
+  // ============================================================
+
+  /**
+   * Set item directly by key
+   */
+  async setItemAsync(key: string, value: string): Promise<void> {
+    const storage = getStorage();
+    await storage.setItemAsync(key, value);
+  },
+
+  /**
+   * Get item directly by key
+   */
+  async getItemAsync(key: string): Promise<string | null> {
+    const storage = getStorage();
+    return storage.getItemAsync(key);
+  },
+
+  /**
+   * Remove item directly by key
+   */
+  async removeItemAsync(key: string): Promise<void> {
+    const storage = getStorage();
+    await storage.deleteItemAsync(key);
+  },
 };
 
 export { STORAGE_KEYS };

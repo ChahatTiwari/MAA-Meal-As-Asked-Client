@@ -2,7 +2,7 @@
 // Authentication API endpoints
 
 import { apiClient } from './client';
-import { storage } from '../storage';
+import { storage } from '../storage/index';
 import { 
   LoginCredentials, 
   RegisterData, 

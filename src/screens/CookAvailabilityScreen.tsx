@@ -158,10 +158,23 @@ const CookAvailabilityScreen: React.FC = () => {
                       mode="outlined"
                       onPress={() => {
                         // Use a simple time picker approach
-                        const newTime = prompt('Enter start time (HH:MM 24hr):', startTime);
-                        if (newTime && /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(newTime)) {
-                          handleTimeChange(day.value, 'start', newTime);
-                        }
+                        Alert.prompt(
+                          'Enter start time (HH:MM 24hr):',
+                          '',
+                          [
+                            { text: 'Cancel', style: 'cancel' },
+                            { 
+                              text: 'OK', 
+                              onPress: (newTime?: string) => {
+                                if (newTime && /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(newTime)) {
+                                  handleTimeChange(day.value, 'start', newTime);
+                                }
+                              } 
+                            }
+                          ],
+                          'plain-text',
+                          startTime
+                        );
                       }}
                       style={styles.timeButton}
                     >
@@ -176,10 +189,23 @@ const CookAvailabilityScreen: React.FC = () => {
                     <Button
                       mode="outlined"
                       onPress={() => {
-                        const newTime = prompt('Enter end time (HH:MM 24hr):', endTime);
-                        if (newTime && /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(newTime)) {
-                          handleTimeChange(day.value, 'end', newTime);
-                        }
+                        Alert.prompt(
+                          'Enter end time (HH:MM 24hr):',
+                          '',
+                          [
+                            { text: 'Cancel', style: 'cancel' },
+                            { 
+                              text: 'OK', 
+                              onPress: (newTime?: string) => {
+                                if (newTime && /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(newTime)) {
+                                  handleTimeChange(day.value, 'end', newTime);
+                                }
+                              } 
+                            }
+                          ],
+                          'plain-text',
+                          endTime
+                        );
                       }}
                       style={styles.timeButton}
                     >

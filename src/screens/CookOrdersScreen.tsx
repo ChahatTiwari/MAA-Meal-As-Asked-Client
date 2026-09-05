@@ -4,7 +4,7 @@ import { View, StyleSheet, FlatList, Alert } from 'react-native';
 import { Card, Text, Button, Appbar, Chip, IconButton } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { useAppSelector } from '../hooks/redux';
-import { RootStackParamList, CookOrder } from '../types';
+import { RootStackParamList, CookOrder, CookOrderStatus } from '../types';
 import { cookApi } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -49,7 +49,7 @@ const CookOrdersScreen: React.FC = () => {
       const status = filter !== 'all' ? filter : undefined;
       const response = await cookApi.getOrders(status);
       if (response.data.success && response.data.orders) {
-        setOrders(response.data.orders);
+        setOrders(response.data.orders as CookOrder[]);
       }
     } catch (error: any) {
       Alert.alert('Error', 'Failed to load orders');
@@ -58,10 +58,10 @@ const CookOrdersScreen: React.FC = () => {
     }
   };
 
-  const getNextStatus = (currentStatus: string): string | null => {
+  const getNextStatus = (currentStatus: CookOrderStatus): CookOrderStatus | null => {
     const index = STATUS_FLOW.indexOf(currentStatus);
     if (index === -1 || index === STATUS_FLOW.length - 1) return null;
-    return STATUS_FLOW[index + 1];
+    return STATUS_FLOW[index + 1] as CookOrderStatus;
   };
 
   const handleStatusUpdate = async (order: CookOrder) => {

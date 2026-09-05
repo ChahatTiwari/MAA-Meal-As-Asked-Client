@@ -168,15 +168,9 @@ const ChatScreen: React.FC = () => {
 
   const {
     sendMessage: sendWSMessage,
-  } = useWebSocket(
-    (data) => {
-
-      if (
-        data?.type ===
-        'orderUpdate'
-      ) {
-
-        const statusMessage: Message = {
+  } = useWebSocket({
+    onOrderUpdate: (data) => {
+      const statusMessage: Message = {
 
           id:
             `${Date.now()}-ws`,
@@ -196,15 +190,14 @@ const ChatScreen: React.FC = () => {
           data:
             data.order,
         };
-
+        
         dispatch(
           addMessage(
             statusMessage
           )
         );
-      }
-    }
-  );
+    },
+  });
 
 
   // ====================================================

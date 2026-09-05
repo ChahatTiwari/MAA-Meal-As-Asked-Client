@@ -3,6 +3,7 @@ import { API_BASE_URL } from "../utils/constants";
 import { storage } from "./storage";
 import { DEMO_MODE } from "./mockData";
 import { mockAuthApi, mockChatApi, mockOrderApi, mockPaymentApi, mockCookApi } from "./mockApi";
+import { CookOrderStatus } from "../types";
 
 /* =========================================================
    MAIN API CLIENT
@@ -38,9 +39,25 @@ export const authApi = {
     return response;
   },
 
-  signup: async (email: string, password: string, name: string) => {
+  register: async (email: string, password: string, name: string) => {
     if (DEMO_MODE) return mockAuthApi.signup(email, password, name);
     const response = await api.post("/api/auth/register", { email, password, name, login_type: "email" });
+    return response;
+  },
+
+  signup: async (email: string, password: string, name: string) => {
+    return authApi.register(email, password, name);
+  },
+
+  logout: async () => {
+    if (DEMO_MODE) return mockAuthApi.logout();
+    const response = await api.post("/api/auth/logout");
+    return response;
+  },
+
+  updateProfile: async (data: Partial<any>) => {
+    if (DEMO_MODE) return mockAuthApi.updateProfile(data);
+    const response = await api.put("/api/auth/profile", data);
     return response;
   },
 };
@@ -252,7 +269,7 @@ export const cookApi = {
     return response;
   },
 
-  updateOrderStatus: async (orderId: string, status: string) => {
+  updateOrderStatus: async (orderId: string, status: CookOrderStatus) => {
     if (DEMO_MODE) return mockCookApi.updateOrderStatus(orderId, status);
     const response = await api.put(`/api/cook/orders/${orderId}/status`, { status });
     return response;
